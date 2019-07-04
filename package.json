@@ -1,0 +1,51 @@
+{
+  "name": "solidity-mmr",
+  "version": "0.0.0",
+  "description": "Solidity Merkle Mountain Range Library",
+  "scripts": {
+    "test": "./node_modules/.bin/truffle test",
+    "coverage": "./node_modules/.bin/solidity-coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanseob/solidity-mmr.git"
+  },
+  "keywords": [
+    "merkle",
+    "mountain",
+    "range",
+    "mmr"
+  ],
+  "author": "Wanseob Lim",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wanseob/solidity-mmr/issues"
+  },
+  "homepage": "https://github.com/wanseob/solidity-mmr#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.1.1",
+    "ethlint": "^1.2.4",
+    "husky": "^3.0.0",
+    "lint-staged": "^9.0.2",
+    "prettier": "^1.18.2",
+    "truffle": "^5.0.26"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm run test"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier --single-quote --write",
+      "git add"
+    ],
+    "contracts/**/*.{sol}": [
+      "solium -d contracts/ --fix",
+      "git add"
+    ]
+  },
+  "dependencies": {}
+}

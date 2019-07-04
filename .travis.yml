@@ -1,0 +1,24 @@
+language: node_js
+node_js:
+- "stable"
+
+install:
+- npm install
+
+script:
+- npm run test
+
+after_success:
+- export CURRENT_VERSION=$(node -p "require('./package.json').version")
+- export LATEST=$(npm view $(node -p "require('./package.json').name") dist-tags.latest)
+- export NEXT=$(npm view $(node -p "require('./package.json').name") dist-tags.next)
+
+before_deploy:
+- if [ "$LATEST" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  echo "on master branch";
+  export TRAVIS_TAG=v$CURRENT_VERSION;
+  fi;
+- if [ "$NEXT" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "develop" ]; then
+  echo "on develop branch";
+  export TRAVIS_TAG=v$CURRENT_VERSION-next;
+  fi;
