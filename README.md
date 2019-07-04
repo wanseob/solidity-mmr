@@ -12,9 +12,9 @@
 
 1. Append only data structure
 1. Easy for inclusion proof
-1. Use significantly small amount of gas to insert a new item
+1. Use significantly small amount of gas to append a new item
    - To append 1000 items, MMR used 95307 gas on average while Merkle patricia tree used 676606 gas
-   - Regarding to insert, MMR was roughly 7 more times cheaper than MPT
+   - Regarding to appending an item, MMR was roughly 7 more times cheaper than MPT
 
 To get more detail information [see this](https://github.com/mimblewimble/grin/blob/master/doc/mmr.md)
 
@@ -38,7 +38,7 @@ To get more detail information [see this](https://github.com/mimblewimble/grin/b
        MMR.Tree mmr;
 
        /**
-        * Merkle Mountain Range tree looks like below
+        * Appending 10 items will construct a Merkle Mountain Range like below
         *              15
         *       7             14
         *    3      6     10       13       18
@@ -57,9 +57,9 @@ To get more detail information [see this](https://github.com/mimblewimble/grin/b
            mmr.append('0x000a'); // stored at index 17
 
            uint256 index = 17;
-           // Get merkle proof for index number 17
+           // Get a merkle proof for index 17
            (bytes32 root, uint256 size, bytes32[] memory peakBagging, bytes32[] memory siblings) = mmr.getMerkleProof(index);
-           // using MMR library verify inclusion
+           // using MMR library verify the root includes the leaf
            Assert.isTrue(MMR.inclusionProof(root, size, index, '0x000a', peakBagging, siblings), "should return true or reverted");
        }
    }
@@ -90,7 +90,7 @@ function getSize(Tree storage tree) public view returns (uint256);
 function getNode(Tree storage tree, uint256 index) public view returns (bytes32);
 
 /**
- * @dev It returns a merkle proof for the given position. Note that the index starts from 1
+ * @dev It returns a merkle proof for a leaf. Note that the index starts from 1
  */
 function getMerkleProof(Tree storage tree, uint256 index) public view returns (
     bytes32 root,
@@ -113,29 +113,41 @@ function inclusionProof(
     bytes32[] memory siblings
 ) public pure returns (bool);
 
-// Hash(M | Left | Right )
+/**
+ * @dev It returns the hash a parent node with hash(M | Left child | Right child)
+ *      M is the index of the node
+ */
 function hashParent(uint256 index, bytes32 left, bytes32 right) public pure returns (bytes32);
 
-// Hash(M | DATA )
+/**
+ * @dev it returns the hash of a leaf node with hash(M | DATA )
+ *      M is the index of the node
+ */
 function hashLeaf(uint256 index, bytes memory data) public pure returns (bytes32);
 
 /**
- * It returns the height of the highest peak
+ * @dev It returns the height of the highest peak
  */
 function mountainHeight(uint256 size) public pure returns (uint8);
 
 /**
- * It returns the height of the index
+ * @dev It returns the height of the index
  */
 function heightAt(uint256 index) public pure returns (uint8 height);
 
+/**
+ * @dev It returns whether the index is the leaf node or not
+ */
 function isLeaf(uint256 index) public pure returns (bool);
 
+/**
+ * @dev It returns the children when it is a parent node
+ */
 function getChildren(uint256 index) public pure returns (uint256 left, uint256 right);
 
 /**
  * @dev It returns all peaks of the smallest merkle mountain range tree which includes
-        the given index(size)
+ *      the given index(size)
  */
 function getPeaks(uint256 size) public pure returns (uint256[] memory peaks);
 ```

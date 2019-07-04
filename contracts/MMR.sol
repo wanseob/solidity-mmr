@@ -5,7 +5,8 @@ pragma solidity >=0.4.21 <0.6.0;
  * @author Wanseob Lim <email@wanseob.com>
  * @title Merkle Mountain Range solidity library
  *
- * The index starts from 1 not 0. And it uses keccak256 for its hash function
+ * @dev The index of this MMR implementation starts from 1 not 0.
+ *      And it uses keccak256 for its hash function instead of blake2b
  */
 library MMR {
 
@@ -17,14 +18,14 @@ library MMR {
 
     /**
      * @dev This only stores the hashed value of the leaf.
-     * If you need to retrieve the detail data later, use a map to store them.
+     *      If you need to retrieve the detail data later, use a map to store them.
      */
     function append(Tree storage tree, bytes memory data) public {
         // Hash the leaf node first
         bytes32 hash = hashLeaf(tree.size + 1, data);
         // Put the hashed leaf to the map
         tree.hashes[tree.size + 1] = hash;
-        // Find peaks for the increased size tree
+        // Find peaks for the enlarged tree
         uint256[] memory peaks = getPeaks(tree.size + 1);
         // The right most peak's value is the new size of the updated tree
         tree.size = peaks[peaks.length - 1];
@@ -64,7 +65,7 @@ library MMR {
     }
 
     /**
-     * @dev It returns a merkle proof for the given position. Note that the index starts from 1
+     * @dev It returns a merkle proof for a leaf. Note that the index starts from 1
      */
     function getMerkleProof(Tree storage tree, uint256 index) public view returns (
         bytes32 root,
@@ -81,29 +82,29 @@ library MMR {
         uint256[] memory peaks = getPeaks(size);
 
         peakBagging = new bytes32[](peaks.length);
-        uint256 myPeakIndex;
+        uint256 cursor;
         for (uint i = 0; i < peaks.length; i++) {
             // Collect the hash of all peaks
             peakBagging[i] = tree.hashes[peaks[i]];
             // Find the peak which includes the target index
-            if (peaks[i] >= index && myPeakIndex == 0) {
-                myPeakIndex = peaks[i];
+            if (peaks[i] >= index && cursor == 0) {
+                cursor = peaks[i];
             }
         }
         uint256 left;
         uint256 right;
 
         // Get hashes of the siblings in the mountain which the index belongs to.
-        // It moves myPeakIndex from the summit of the mountain down to the target index
-        uint8 myPeakHeight = heightAt(myPeakIndex);
-        siblings = new bytes32[](myPeakHeight - 1);
-        while (myPeakIndex != index) {
-            myPeakHeight--;
-            (left, right) = getChildren(myPeakIndex);
-            // Move myPeakIndex down to the left side or right side
-            myPeakIndex = index <= left ? left : right;
+        // It moves the cursor from the summit of the mountain down to the target index
+        uint8 height = heightAt(cursor);
+        siblings = new bytes32[](height - 1);
+        while (cursor != index) {
+            height--;
+            (left, right) = getChildren(cursor);
+            // Move the cursor down to the left side or right side
+            cursor = index <= left ? left : right;
             // Remaining node is the sibling
-            siblings[myPeakHeight - 1] = tree.hashes[index <= left ? right : left];
+            siblings[height - 1] = tree.hashes[index <= left ? right : left];
         }
     }
 
@@ -179,18 +180,24 @@ library MMR {
         return true;
     }
 
-    // Hash(M | Left | Right )
+    /**
+     * @dev It returns the hash a parent node with hash(M | Left child | Right child)
+     *      M is the index of the node
+     */
     function hashParent(uint256 index, bytes32 left, bytes32 right) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(index, left, right));
     }
 
-    // Hash(M | DATA )
+    /**
+     * @dev it returns the hash of a leaf node with hash(M | DATA )
+     *      M is the index of the node
+     */
     function hashLeaf(uint256 index, bytes memory data) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(index, data));
     }
 
     /**
-     * It returns the height of the highest peak
+     * @dev It returns the height of the highest peak
      */
     function mountainHeight(uint256 size) public pure returns (uint8) {
         uint8 height = 1;
@@ -201,7 +208,7 @@ library MMR {
     }
 
     /**
-     * It returns the height of the index
+     * @dev It returns the height of the index
      */
     function heightAt(uint256 index) public pure returns (uint8 height) {
         uint256 reducedIndex = index;
@@ -216,10 +223,16 @@ library MMR {
         height = height - uint8((peakIndex - reducedIndex));
     }
 
+    /**
+     * @dev It returns whether the index is the leaf node or not
+     */
     function isLeaf(uint256 index) public pure returns (bool) {
         return heightAt(index) == 1;
     }
 
+    /**
+     * @dev It returns the children when it is a parent node
+     */
     function getChildren(uint256 index) public pure returns (uint256 left, uint256 right) {
         left = index - (uint256(1) << (heightAt(index) - 1));
         right = index - 1;
@@ -228,7 +241,7 @@ library MMR {
 
     /**
      * @dev It returns all peaks of the smallest merkle mountain range tree which includes
-            the given index(size)
+     *      the given index(size)
      */
     function getPeaks(uint256 size) public pure returns (uint256[] memory peaks) {
         uint8 height = 0;
@@ -254,9 +267,9 @@ library MMR {
 
     /**
      * @dev It returns the hash value of the node for the index.
-            If the hash already exists it simply returns the value, but on the other hand,
-            it computes hashes recursively through downward. This computation occurs when a
-            new item appended to the node
+     *      If the hash already exists it simply returns the stored value. On the other hand,
+     *      it computes hashes recursively downward.
+     *      Only appending an item calls this function
      */
     function _getOrCreateNode(Tree storage tree, uint256 index) private returns (bytes32) {
         require(index <= tree.size, "Out of range");

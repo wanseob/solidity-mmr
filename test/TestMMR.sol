@@ -12,7 +12,7 @@ contract TestMMR {
     MMR.Tree mmr;
 
     /**
-     * Merkle Mountain Range tree looks like below
+     * Appending 10 items will construct a Merkle Mountain Range like below
      *              15
      *       7             14
      *    3      6     10       13       18
@@ -31,9 +31,9 @@ contract TestMMR {
         mmr.append('0x000a'); // stored at index 17
 
         uint256 index = 17;
-        // Get merkle proof for index number 17
+        // Get a merkle proof for index 17
         (bytes32 root, uint256 size, bytes32[] memory peakBagging, bytes32[] memory siblings) = mmr.getMerkleProof(index);
-        // using MMR library verify inclusion
+        // using MMR library verify the root includes the leaf
         Assert.isTrue(MMR.inclusionProof(root, size, index, '0x000a', peakBagging, siblings), "should return true or reverted");
     }
 }

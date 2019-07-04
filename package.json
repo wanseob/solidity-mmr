@@ -4,6 +4,7 @@
   "description": "Solidity Merkle Mountain Range Library",
   "scripts": {
     "test": "./node_modules/.bin/truffle test",
+    "prettier": "./node_modules/.bin/prettier --single-quote --write --print-width 160 ./**/*.js",
     "coverage": "./node_modules/.bin/solidity-coverage"
   },
   "repository": {
@@ -39,7 +40,7 @@
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
-      "prettier --single-quote --write",
+      "prettier --single-quote --write  --print-width 160",
       "git add"
     ],
     "contracts/**/*.{sol}": [
