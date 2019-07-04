@@ -1,24 +1,50 @@
 language: node_js
 node_js:
-- "stable"
-
+  - stable
 install:
-- npm install
-
+  - npm install
 script:
-- npm run test
-
+  - npm run test
 after_success:
-- export CURRENT_VERSION=$(node -p "require('./package.json').version")
-- export LATEST=$(npm view $(node -p "require('./package.json').name") dist-tags.latest)
-- export NEXT=$(npm view $(node -p "require('./package.json').name") dist-tags.next)
-
+  - export CURRENT_VERSION=$(node -p "require('./package.json').version")
+  - export LATEST=$(npm view $(node -p "require('./package.json').name") dist-tags.latest)
+  - export NEXT=$(npm view $(node -p "require('./package.json').name") dist-tags.next)
 before_deploy:
-- if [ "$LATEST" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  echo "on master branch";
-  export TRAVIS_TAG=v$CURRENT_VERSION;
-  fi;
-- if [ "$NEXT" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "develop" ]; then
-  echo "on develop branch";
-  export TRAVIS_TAG=v$CURRENT_VERSION-next;
-  fi;
+  - if [ "$LATEST" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+    echo "on master branch"; export TRAVIS_TAG=v$CURRENT_VERSION; fi;
+  - if [ "$NEXT" != "$CURRENT_VERSION" ] && [ "$TRAVIS_BRANCH" = "develop" ]; then echo
+    "on develop branch"; export TRAVIS_TAG=v$CURRENT_VERSION-next; fi;
+
+deploy:
+  - provider: npm
+    email: email@wanseob.com
+    api_key:
+      secure: PdYVkjWdm7MwtVawC9fuiGAdB0vIJiu9TqsED4gJb3adHmZ6qxS9dkzDs1Yb4grLWDNrP2eLAxNyePUYoU80DZHwioCFaBSmjqjCWgYNZyC0B/CmMVl0/AvCYShd3/F0qMCYSANXRHk9TsaYQn6RcqWs6u9hgZgdjJ58Kb4fCPn6MlkwXGtnaK+EXzUl5BjxIRIsYjU+v+kvphNTlDBU2namIeOI7o7PEe7VkqQzzAc19EM5XXjfhIeejHoEL0mY87+ACszbHyrUupTMCUAZuKvA5jvEXctr2prjOqIqG4fiq7kVcvxnoQ2TFazHwjqBZ9t8lpQ6FvQiSz6b2S6p/CoZasjo5z2nzekKOZQQXoDwgMeXVSR38KLwEpGCEiHXeoQbZezyMcb5LognQfaLa0y29tmMbAayLVFbI9uKdBfQ+0rzjJ+bxDEsgqS32UJy6eEAVr7iZzXZuDHDkwCwT7YYd+QYeBTPJZPVVAg465g/95O4+3mCRj7469bxkhEdRkrEm0J6ZCv7LwP6uI/wArPtvlUlHxao1XAg2KRn5NY5WlwmWPtr8Il5hOa9Vhmr4d+MpA4sQh5XYIGEINyjjTuG7eN6YK7ilGKzBxV+lrDuIM66cit+2uwk2UcTmG4pZEKjL19YOk/lZRdHkHA2tQYm9RzQvmDyehLbZUM4D/8=
+    tag: next
+    on:
+      condition: $NEXT != $CURRENT_VERSION
+      tags: true
+      repo: wanseob/solidity-mmr
+    on:
+      branch: develop
+      repo: wanseob/mmr
+  - provider: npm
+    email: email@wanseob.com
+    api_key:
+      secure: PdYVkjWdm7MwtVawC9fuiGAdB0vIJiu9TqsED4gJb3adHmZ6qxS9dkzDs1Yb4grLWDNrP2eLAxNyePUYoU80DZHwioCFaBSmjqjCWgYNZyC0B/CmMVl0/AvCYShd3/F0qMCYSANXRHk9TsaYQn6RcqWs6u9hgZgdjJ58Kb4fCPn6MlkwXGtnaK+EXzUl5BjxIRIsYjU+v+kvphNTlDBU2namIeOI7o7PEe7VkqQzzAc19EM5XXjfhIeejHoEL0mY87+ACszbHyrUupTMCUAZuKvA5jvEXctr2prjOqIqG4fiq7kVcvxnoQ2TFazHwjqBZ9t8lpQ6FvQiSz6b2S6p/CoZasjo5z2nzekKOZQQXoDwgMeXVSR38KLwEpGCEiHXeoQbZezyMcb5LognQfaLa0y29tmMbAayLVFbI9uKdBfQ+0rzjJ+bxDEsgqS32UJy6eEAVr7iZzXZuDHDkwCwT7YYd+QYeBTPJZPVVAg465g/95O4+3mCRj7469bxkhEdRkrEm0J6ZCv7LwP6uI/wArPtvlUlHxao1XAg2KRn5NY5WlwmWPtr8Il5hOa9Vhmr4d+MpA4sQh5XYIGEINyjjTuG7eN6YK7ilGKzBxV+lrDuIM66cit+2uwk2UcTmG4pZEKjL19YOk/lZRdHkHA2tQYm9RzQvmDyehLbZUM4D/8=
+    tag: latest
+    on:
+      condition: $LATEST != $CURRENT_VERSION
+      tags: true
+      repo: wanseob/solidity-mmr
+    on:
+      branch: master
+      repo: wanseob/solidity-mmr
+
+  - provider: releases
+    api_key:
+      secure: HzZKeX4YTg3XQqh5qS1vrgBvLj154q+W3W3Z24EtgFCevI0LO3kaLPwmYlaaOxKBMZHf8Ca4i09JYLbg+3UsvZDiULBoSukSgFtei7czpjSCgNg1neL+uTEceiWtzD5DQpZTZCdNF7OumnWAQ0HvOFi6e41XXeBsNoqyyhTgsK9qIZDlsA8fiqnCPL0eLR5FQvU781oRNn0ceyIkFuUXvGwqV9s0fJRzp/On5eGoZUX0XwUGvp85ArXnQBo0LBa1eDcSVHZS+ItcG8vnK3jT19OCjejhfitN010sg0oGkNUgH5NY+I/gWl+Fz2dqLb/jSA72SO41nc9j4dR4DhnJRO6bGdwl+hsPzS/jV6eB01Iuw0ziRjsS8Gi5pbLK2+EhCrQ1f3TGGfPJlioNWRSmfyxGjNbTbzo3aG3NhRzeShQpgVK85y7jAslofM1Hwxxc6wmEQsq0R2dTGiY8njK2dY1Jzer6GkhsQuKmYjPr6dPYZbS9WaL4LQjdOGanghZKzXzPs87qRA+uTeD3bLTBNqamcqi/gkK2waXLARyKH2Knlk+J3WaCVW7jrLdMZbgQGLpY/WHc+SAluUQXpSppqMoT6U1s3HpXgNnJAIVLmiCakNZd+S3rcU7Xu0wwyQGJUOKG9NwxjAxfmApxLrHUJlDM/vM9lQ07/t51ULLm0+A=
+    on:
+      tags: true
+      repo: wanseob/solidity-mmr
+      branch: master
