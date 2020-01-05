@@ -36,4 +36,33 @@ contract TestMMR {
         // using MMR library verify the root includes the leaf
         Assert.isTrue(MMR.inclusionProof(root, size, index, '0x000a', peakBagging, siblings), "should return true or reverted");
     }
+
+    function testRollUp() public {
+        bytes[] memory data = new bytes[](7);
+        data[0] = bytes("0x000b");
+        data[1] = bytes("0x000c");
+        data[2] = bytes("0x000d");
+        data[3] = bytes("0x000e");
+        data[4] = bytes("0x000f");
+        data[5] = bytes("0x0010");
+        data[6] = bytes("0x0011");
+        bytes32[] memory hashes = new bytes32[](7);
+        hashes[0] = keccak256(data[0]);
+        hashes[1] = keccak256(data[1]);
+        hashes[2] = keccak256(data[2]);
+        hashes[3] = keccak256(data[3]);
+        hashes[4] = keccak256(data[4]);
+        hashes[5] = keccak256(data[5]);
+        hashes[6] = keccak256(data[6]);
+        bytes32 newRollUpRoot = MMR.rollUp(
+            mmr.root,
+            mmr.width,
+            mmr.getPeaks(),
+            hashes
+        );
+        for(uint i = 0; i < 7; i++) {
+            mmr.append(data[i]);
+        }
+        Assert.isTrue(mmr.root == newRollUpRoot, "Roll up shows different result");
+    }
 }

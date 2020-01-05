@@ -20,6 +20,7 @@ contract('MerkleMountainRange', async () => {
     console.log('           3 |      7             14                 22                 29                 38                 45');
     console.log('           2 |   3      6     10       13       18       21        25       28        34        37       41        44       49');
     console.log('           1 | 1  2   4  5   8  9    11  12   16  17    19  20   23  24    26  27   32  33    35  36   39  40    42  43   47  48    50');
+    console.log('       width | 1  2   3  4   5  6     7   8    9  10    11  12   13  14    15  16   17  18    19  20   21  22    23  24   25  26    27');
   });
   context('Test pure functions', async () => {
     describe('getChildren()', async () => {
@@ -44,37 +45,38 @@ contract('MerkleMountainRange', async () => {
         await mmrLib.getChildren(4).should.be.rejected;
       });
     });
-    describe('getPeaks()', async () => {
-      it('should return [15, 22, 25] for a mmr which size is 25', async () => {
-        res = await mmrLib.getPeaks(25);
+    describe('getPeakIndexes()', async () => {
+      it('should return [15, 22, 25] for a mmr which width is 14', async () => {
+        res = await mmrLib.getPeakIndexes(14);
         res[0].should.be.a.bignumber.that.equals('15');
         res[1].should.be.a.bignumber.that.equals('22');
         res[2].should.be.a.bignumber.that.equals('25');
       });
-      it('should return [3] for a mmr which size is 3', async () => {
-        res = await mmrLib.getPeaks(3);
+      it('should return [3] for a mmr which width is 2', async () => {
+        res = await mmrLib.getPeakIndexes(2);
         res[0].should.be.a.bignumber.that.equals('3');
       });
-      it('should return [31, 46, 49, 50] for a mmr which size is 50', async () => {
-        res = await mmrLib.getPeaks(50);
+      it('should return [31, 46, 49, 50] for a mmr which width is 27', async () => {
+        res = await mmrLib.getPeakIndexes(27);
         res[0].should.be.a.bignumber.that.equals('31');
         res[1].should.be.a.bignumber.that.equals('46');
         res[2].should.be.a.bignumber.that.equals('49');
         res[3].should.be.a.bignumber.that.equals('50');
       });
     });
-    describe('hashParent()', async () => {
+    describe('hashBranch()', async () => {
       it('should return sha3(m|left,right)', async () => {
         let left = web3.utils.soliditySha3(1, '0x00'); // At 1
         let right = web3.utils.soliditySha3(2, '0x00'); // At 2
-        res = await mmrLib.hashParent(3, left, right);
+        res = await mmrLib.hashBranch(3, left, right);
         res.should.equal(web3.utils.soliditySha3(3, left, right));
       });
     });
     describe('hashLeaf()', async () => {
       it('should return sha3(m|data)', async () => {
-        let leaf = web3.utils.soliditySha3(23, '0xa300'); // At 1
-        res = await mmrLib.hashLeaf(23, '0xa300');
+        let dataHash = web3.utils.soliditySha3('0xa300');
+        let leaf = web3.utils.soliditySha3(23, dataHash); // At 1
+        res = await mmrLib.hashLeaf(23, dataHash);
         res.should.equal(leaf);
       });
     });
@@ -181,18 +183,18 @@ contract('MerkleMountainRange', async () => {
         res = await mmr.getMerkleProof(index);
       });
       it('should return 0x2f... for its root value', async () => {
-        res.root.should.equal('0xba233bb115f487ce58f53e1f81d39d8d1b221402048e25155b745f1dce79c0d5');
+        res.root.should.equal('0x88dfff1699bf22520652e93f236f3f58959d4c27dea45f51055a2d77fb93ec11');
       });
-      it('should return 11 for its size', async () => {
-        res.size.should.be.a.bignumber.that.equals('11');
+      it('should return 7 for its width', async () => {
+        res.width.should.be.a.bignumber.that.equals('7');
       });
       it('should return [0xfdb6.., 0x3fd8.., 0x2fce..] for its peaks', async () => {
-        res.peakBagging[0].should.equal('0xfdb618490bb72540adc4f60681c449063ccd284c200b5524d55c4ecde3c28cc5');
-        res.peakBagging[1].should.equal('0x3fd82e5dd8a518732fa1bcb1ed12f15c69e5a4a2dca3a3b8bdbb457b6f6750bb');
-        res.peakBagging[2].should.equal('0x2fceabdcb4c1a9780bcdb9b0bdedc6d778319816dbf397d910228d48ff988646');
+        res.peakBagging[0].should.equal('0x3ac80852966392520aa17c48a62b2dfe22b108dcd87c8f23379d4c85a2df4d65');
+        res.peakBagging[1].should.equal('0xf2edcdb56d70287f5073604592c0c450defa40606011d674872c8f5564d9467d');
+        res.peakBagging[2].should.equal('0x35a18c4845979c4361b304605bb19b195d3cc2417eeed4e4e422fcc6ec0a4c1e');
       });
       it('should return hash value at the index 9 as its sibling', async () => {
-        res.siblings[0].should.equal('0x91eafe2c928033160404d65f4f5e09c1b8a4411afd127753db0dcdc522897c57');
+        res.siblings[0].should.equal('0x700084bf5cb6e85b7bd0eeeac40470f14a4a91ddf4d05070369aa9cf48a0e51e');
       });
     });
     describe('inclusionProof()', async () => {
@@ -205,13 +207,13 @@ contract('MerkleMountainRange', async () => {
       it('should return pass true when it receives a valid merkle proof', async () => {
         let index = 27;
         res = await mmr.getMerkleProof(index);
-        await mmrLib.inclusionProof(res.root, res.size, index, '0x0000', res.peakBagging, res.siblings).should.eventually.equal(true);
+        await mmrLib.inclusionProof(res.root, res.width, index, '0x0000', res.peakBagging, res.siblings).should.eventually.equal(true);
       });
       it('should revert when it receives an invalid merkle proof', async () => {
         let index = 27;
         res = await mmr.getMerkleProof(index);
         // Stored value is 0x0000 not 0x0001
-        await mmrLib.inclusionProof(res.root, res.size, index, '0x0001', res.peakBagging, res.siblings).should.be.rejected;
+        await mmrLib.inclusionProof(res.root, res.width, index, '0x0001', res.peakBagging, res.siblings).should.be.rejected;
       });
     });
   });

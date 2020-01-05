@@ -22,7 +22,13 @@ contract MMRWrapper {
         return mTree.getSize();
     }
 
-    function getMerkleProof(uint256 index) public view returns (bytes32 root, uint256 size, bytes32[] memory peakBagging, bytes32[] memory siblings){
+    function getMerkleProof(uint256 index) public view returns (
+        bytes32 root,
+        uint256 width,
+        bytes32[] memory peakBagging,
+        bytes32[] memory siblings
+    )
+    {
         return mTree.getMerkleProof(index);
     }
 }

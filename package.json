@@ -24,12 +24,15 @@
   },
   "homepage": "https://github.com/wanseob/solidity-mmr#readme",
   "devDependencies": {
+    "@types/chai": "^4.2.4",
+    "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-bn": "^0.1.1",
     "ethlint": "^1.2.4",
     "husky": "^3.0.0",
     "lint-staged": "^9.0.2",
+    "mocha": "^6.2.2",
     "prettier": "^1.18.2",
     "truffle": "^5.0.26"
   },
