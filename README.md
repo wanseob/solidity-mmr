@@ -4,7 +4,9 @@
 [![Build Status](https://travis-ci.org/wanseob/solidity-mmr.svg?branch=master)](https://travis-ci.org/wanseob/solidity-mmr)
 
 ### Deployed state
+#### v1.0.0
 
+#### v0.1.1
 - Mainnet: 0x7a1092e623f1194c4f89fef82f405075ba348e76 [view on Etherscan](https://etherscan.io/address/0x7a1092e623f1194c4f89fef82f405075ba348e76#contracts)
 - Ropsten: 0x3708b7360f31467355cf38013161865eb8bde15f [view on Etherscan](https://ropsten.etherscan.io/address/0x3708b7360f31467355cf38013161865eb8bde15f#contracts)
 
